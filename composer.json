@@ -1,5 +1,5 @@
 {
-    "name": "ooyala/v2-api",
+    "name": "ooyala/php-v2-sdk",
     "description": "Ooyala's V2 API PHP SDK",
     "license": "proprietary",
     "autoload": {
