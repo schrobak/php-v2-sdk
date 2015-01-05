@@ -1,14 +1,21 @@
 <?php
 
-require_once 'OoyalaApi.php';
-
 class OoyalaApiTest extends PHPUnit_Framework_TestCase
 {
+    /**
+     * @var OoyalaApi
+     */
     protected $ooyalaApi;
+    /**
+     * @var string
+     */
     protected $secretKey;
+    /**
+     * @var string
+     */
     protected $apiKey;
 
-    public function setUp()
+    protected function setUp()
     {
         $this->apiKey    = '7ab06';
         $this->secretKey = '329b5b204d0f11e0a2d060334bfffe90ab18xqh5';
@@ -21,7 +28,7 @@ class OoyalaApiTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($api->secretKey, $this->secretKey);
         $this->assertEquals($api->apiKey, $this->apiKey);
         $this->assertEquals($api->baseUrl, 'https://api.ooyala.com');
-        $this->assertEquals($api->cacheBaseUrl, 'http://cdn.api.ooyala.com');
+        $this->assertEquals($api->cacheBaseUrl, 'http://cdn-api.ooyala.com');
         $this->assertEquals($api->expirationWindow, 15);
     }
 
@@ -53,21 +60,26 @@ class OoyalaApiTest extends PHPUnit_Framework_TestCase
     {
         $params = array('api_key' => '7ab06', 'test' => 'true');
         $url = $this->ooyalaApi->buildUrl('GET', '/v2/players/HbxJKM');
-        $this->assertContains('http://cdn.api.ooyala.com', $url);
+        $this->assertContains(OOYALA_API_DEFAULT_CACHE_BASE_URL, $url);
         $this->assertContains('/v2/players/HbxJKM', $url);
         $url = $this->ooyalaApi->buildUrl('POST', '/v2/players/HbxJKM', $params);
-        $this->assertContains('https://api.ooyala.com', $url);
+        $this->assertContains(OOYALA_API_DEFAULT_BASE_URL, $url);
         $this->assertContains('api_key=7ab06', $url);
         $this->assertContains('test=true', $url);
     }
 
     public function testBuildUrlWithCustomBaseUrl()
     {
+        $this->ooyalaApi->baseUrl = 'http://example.com';
+        $url = $this->ooyalaApi->buildUrl('POST', '');
+        $this->assertContains('http://example.com', $url);
+    }
+
+    public function testBuildUrlWithCustomCacheBaseUrl()
+    {
         $this->ooyalaApi->cacheBaseUrl = 'http://example.com';
         $url = $this->ooyalaApi->buildUrl('GET', '');
         $this->assertContains('http://example.com', $url);
-        $this->ooyalaApi->baseUrl = 'http://example.com';
-        $url = $this->ooyalaApi->buildUrl('POST', '');
     }
 
     /**
@@ -89,16 +101,9 @@ class OoyalaApiTest extends PHPUnit_Framework_TestCase
             ->with($this->equalTo('POST'),
                 $this->stringContains('api.ooyala.com/v2/players/HbxJKM'),
                 $this->anything())
-            ->will($this->throwException(new OoyalaRequestErrorException));
+            ->will($this->throwException(new OoyalaRequestErrorException('error')));
         $this->ooyalaApi->httpRequest = $httpRequest;
         $this->ooyalaApi->sendRequest('post', 'players/HbxJKM');
-    }
-
-    public function testSendSuccessfulRequest()
-    {
-        $this->ooyalaApi->cacheBaseUrl = 'http://127.0.0.1';
-        $response = $this->ooyalaApi->sendRequest('get', '/v2/..');
-        $this->assertEquals("", $response);
     }
 
     public function testSendRequestShouldCompleteTheRoute()
@@ -119,7 +124,7 @@ class OoyalaApiTest extends PHPUnit_Framework_TestCase
             ->method('execute')
             ->with($this->equalTo('GET'),
                 $this->stringContains(
-                    'http://cdn.api.ooyala.com/v2/players/HbxJKM'),
+                    'http://cdn-api.ooyala.com/v2/players/HbxJKM'),
                 $this->anything());
         $this->ooyalaApi->sendRequest('get', '/v2/players/HbxJKM');
     }

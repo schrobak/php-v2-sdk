@@ -1,7 +1,5 @@
 <?php
 
-require_once 'OoyalaApi.php';
-
 class OoyalaHttpRequestTest extends PHPUnit_Framework_TestCase
 {
     protected $baseUrl;
@@ -9,7 +7,7 @@ class OoyalaHttpRequestTest extends PHPUnit_Framework_TestCase
     protected $contentType;
     protected $shouldFollowLocation;
 
-    public function setUp()
+    protected function setUp()
     {
         $this->baseUrl = "http://127.0.0.1";
         $this->curlOptions = array(CURLOPT_FOLLOWLOCATION, true);
@@ -57,6 +55,9 @@ class OoyalaHttpRequestTest extends PHPUnit_Framework_TestCase
         $ooyalaHttpRequest->execute('get', 'http://127.0.0.1/invalid/location.json');
     }
 
+    /**
+     * @requires OS Linux
+     */
     public function testWithOverridingOptions()
     {
         $ooyalaHttpRequest = new OoyalaHttpRequest();
